@@ -36,6 +36,8 @@ spec:
                   value: {{ .Values.accountClusterMap | quote }}
                 - name: LOOKBACK_DAYS
                   value: {{ .Values.lookbackDays | quote }}
+                - name: CUR_GRANULARITY
+                  value: {{ .Values.granularity | quote }}
                 - name: VM_IMPORT_URL
                   value: {{ .Values.vmImportUrl | quote }}
               resources:

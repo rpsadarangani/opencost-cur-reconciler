@@ -18,6 +18,11 @@ accountClusterMap: ""
 # Sliding reconciliation window (CUR lags ~12-24h; re-pushes are idempotent)
 lookbackDays: "4"
 
+# CUR export granularity: auto | hourly | daily.
+# auto derives covered hours from usage_start/usage_end per row — exact for
+# hourly, daily and mixed exports. Set explicitly if your CUR is unusual.
+granularity: auto
+
 # VictoriaMetrics prometheus-format import endpoint
 # single: http://vmsingle:8429/api/v1/import/prometheus
 # cluster: http://vminsert:8480/insert/0/prometheus/api/v1/import/prometheus

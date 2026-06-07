@@ -85,6 +85,39 @@ sum by (namespace) (
 / sum by (cluster) (avg by (cluster,node) (node_total_hourly_cost)) )
 ```
 
+## CUR granularity — read this before deploying
+
+CUR exports come in **hourly** or **daily** granularity (set when the export was created).
+Getting this wrong silently produces rates that are 24x off — a daily row read as hourly
+turns $48/day into $48/hour.
+
+`granularity` setting:
+
+| Value | Behavior |
+|---|---|
+| `auto` (default) | Derives covered hours per row from `usage_start`/`usage_end` (`date_diff`). Exact for hourly, daily and mixed exports. Use this unless you have a reason not to. |
+| `hourly` | Assumes one row per instance-hour. |
+| `daily` | Assumes one row per instance-day (divides by 24). |
+
+Sanity check after the first run: pick one long-running on-demand instance and compare
+`aws_node_effective_hourly_cost` against its known rate. Sample count is also a tell:
+N instances × days × 24 samples expected — if you see ~1/24th of that before v0.2, your
+export is daily.
+
+## Setup checklist
+
+1. CUR 2.0 export with **resource IDs** enabled (without them there are no `i-...` ids to join on).
+2. Athena table over the export (AWS's CUR-Athena integration or CID does this).
+3. IAM: Athena query + Glue read + S3 read on the CUR data + S3 rw on the Athena results
+   location, reachable from the pod via IRSA (optionally through `curRoleArn` for
+   cross-account).
+4. `accountClusterMap`: cluster label values must match the external `cluster` label your
+   metrics pipeline attaches to OpenCost metrics — that's the join key in Grafana.
+5. Deploy, then trigger once manually: `kubectl create job --from=cronjob/<release> test-run`
+   and check the job log: `pushing N samples`.
+6. Verify in VictoriaMetrics: `count(aws_node_effective_hourly_cost)` > 0 and the sanity
+   check above.
+
 ## Notes
 
 - CUR data lags ~12–24h; the job re-pushes a sliding `lookbackDays` window (idempotent —
