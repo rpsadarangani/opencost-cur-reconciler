@@ -1,0 +1,35 @@
+schedule: "20 */6 * * *"
+image: public.ecr.aws/aws-cli/aws-cli:latest
+
+# Optional cross-account role holding Athena/Glue/S3 CUR access.
+# Empty = use the pod's IRSA credentials directly.
+curRoleArn: ""
+
+athena:
+  region: us-east-1
+  workgroup: primary
+  database: ""
+  table: ""
+
+# accountId=clusterLabel pairs, comma separated. Cluster label must match the
+# external label your agents attach when remote-writing OpenCost metrics.
+accountClusterMap: ""
+
+# Sliding reconciliation window (CUR lags ~12-24h; re-pushes are idempotent)
+lookbackDays: "4"
+
+# VictoriaMetrics prometheus-format import endpoint
+# single: http://vmsingle:8429/api/v1/import/prometheus
+# cluster: http://vminsert:8480/insert/0/prometheus/api/v1/import/prometheus
+vmImportUrl: ""
+
+serviceAccount:
+  create: true
+  name: opencost-cur-reconciler
+  annotations: {}
+    # eks.amazonaws.com/role-arn: arn:aws:iam::111111111111:role/cur-reconciler
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi

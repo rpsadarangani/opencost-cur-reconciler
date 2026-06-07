@@ -1,0 +1,13 @@
+apiVersion: v2
+name: opencost-cur-reconciler
+description: Reconcile OpenCost node costs against actual AWS CUR (SP/RI/EDP/spot effective costs)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/rpsadarangani/opencost-cur-reconciler
+keywords:
+  - opencost
+  - finops
+  - cost
+  - cur
+  - kubernetes

@@ -1,0 +1,18 @@
+# Example: CUR/Athena in a dedicated billing account (333...), reconciler
+# running in a workload account (111...) via cross-account AssumeRole.
+
+athena:
+  region: us-east-1
+  workgroup: primary
+  database: cur_data_export
+  table: cur2
+
+curRoleArn: arn:aws:iam::333333333333:role/cur-read
+
+accountClusterMap: "111111111111=prod-cluster,222222222222=dev-cluster"
+
+vmImportUrl: http://vminsert.monitoring.svc:8480/insert/0/prometheus/api/v1/import/prometheus
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::111111111111:role/cur-reconciler

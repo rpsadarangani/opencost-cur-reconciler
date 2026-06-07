@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1200
+      template:
+        spec:
+          serviceAccountName: {{ .Values.serviceAccount.name }}
+          restartPolicy: Never
+          containers:
+            - name: reconciler
+              image: {{ .Values.image | quote }}
+              command: ["bash", "/scripts/reconcile.sh"]
+              env:
+                - name: CUR_ROLE_ARN
+                  value: {{ .Values.curRoleArn | quote }}
+                - name: ATHENA_REGION
+                  value: {{ .Values.athena.region | quote }}
+                - name: ATHENA_WORKGROUP
+                  value: {{ .Values.athena.workgroup | quote }}
+                - name: ATHENA_DATABASE
+                  value: {{ .Values.athena.database | quote }}
+                - name: ATHENA_TABLE
+                  value: {{ .Values.athena.table | quote }}
+                - name: ACCOUNT_CLUSTER_MAP
+                  value: {{ .Values.accountClusterMap | quote }}
+                - name: LOOKBACK_DAYS
+                  value: {{ .Values.lookbackDays | quote }}
+                - name: VM_IMPORT_URL
+                  value: {{ .Values.vmImportUrl | quote }}
+              resources:
+{{ toYaml .Values.resources | indent 16 }}
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+          volumes:
+            - name: scripts
+              configMap:
+                name: {{ .Release.Name }}
+                defaultMode: 0755
